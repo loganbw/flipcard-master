@@ -1,0 +1,22 @@
+<nav class = "navbar navbar-toggleable-md ">
+<div class="navbar-nav">
+  <a class ="nav-item nav-link" href="/flipcard/home">Home</a>
+  <a class ="nav-item nav-link" href="/flipcard/create">Create a New Deck</a>
+  {{#if user}}
+  <span>{{this.username}}</span>
+  <a class ="nav-item nav-link" href="/logout">Logout</a>
+  {{else}}
+  <a class ="nav-item nav-link" href="/">Login</a>
+  <a class ="nav-item nav-link" href="/signup">Signup</a>
+  {{/if}}
+</div>
+
+<h2>edit your card</h2>
+
+<form class="edit" action="/flipcard/editPost" method="post">
+  <input type="hidden" name="hiddenId" value={{hiddenId}}>
+  <input type="hidden" name="cardId" value={{cardId}}>
+  <input type="text" name="updatefcard" value="{{fcard}}">
+  <input type="text" name="updatebcard" value="{{bcard}}">
+  <input type="submit" name="" value="Submit">
+</form>

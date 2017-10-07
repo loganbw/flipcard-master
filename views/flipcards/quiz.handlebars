@@ -1,0 +1,33 @@
+<nav class = "navbar navbar-toggleable-md ">
+<div class="navbar-nav">
+  <a class ="nav-item nav-link" href="/flipcard/home">Home</a>
+  <a class ="nav-item nav-link" href="/flipcard/create">Create a New Deck</a>
+  {{#if user}}
+  <span>{{this.username}}</span>
+  <a class ="nav-item nav-link" href="/logout">Logout</a>
+  {{else}}
+  <a class ="nav-item nav-link" href="/">Login</a>
+  <a class ="nav-item nav-link" href="/signup">Signup</a>
+  {{/if}}
+</div>
+</nav>
+
+<h1>Chimp</h1>
+Right: {{rights}} Wrongs: {{wrongs}} Total: {{totals}}
+{{#if finished}}
+<span>test is complete </span>
+{{else}}
+Question: {{question}}
+<form class="" action="/flipcard/checkanswer" method="post">
+  <input type="hidden" name="hiddenId" value={{hiddenId}}>
+  <input type="hidden" name="cardId" value={{id}}>
+  <textarea name="answer" rows="8" cols="80"></textarea>
+  <input type="submit" name="" value="submit">
+</form>
+{{/if}}
+<form class="" action="/flipcard/quiz" method="post">
+  <input type="hidden" name="hiddenId" value={{hiddenId}}>
+  <input type="hidden" name="startnew" value="true">
+  <input type="hidden" name="cardId" value={{id}}>
+  <input type="submit" name="" value="start over">
+</form>

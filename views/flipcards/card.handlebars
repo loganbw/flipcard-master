@@ -1,0 +1,45 @@
+<nav class = "navbar navbar-toggleable-md ">
+<div class="navbar-nav">
+  <a class ="nav-item nav-link" href="/flipcard/home">Home</a>
+  <a class ="nav-item nav-link" href="/flipcard/create">Create a New Deck</a>
+  {{#if user}}
+  <span>{{this.username}}</span>
+  <a class ="nav-item nav-link" href="/logout">Logout</a>
+  {{else}}
+  <a class ="nav-item nav-link" href="/">Login</a>
+  <a class ="nav-item nav-link" href="/signup">Signup</a>
+  {{/if}}
+</div>
+</nav>
+<br>
+<div>
+<h1>Add A Card To Your Deck</h1>
+<form class="createCard" action="/flipcard/createcard" method="post">
+  <input type="text" name="frontCard" value=""  placeholder="Question">
+  <input type="text" name="backCard" value="" placeholder="Answer">
+  <input type="hidden" name="hiddenId" value={{hiddenId}}>
+  <input type="submit" value="submit">
+</form>
+</div>
+<br>
+<div>
+<ul>
+{{#each card}}
+<li>
+<span>{{fcard}}</span>
+<form class="edit d-inline" action="/flipcard/edit" method="post">
+  <input type="hidden" name="hiddenId" value={{../hiddenId}}>
+  <input type="hidden" name="cardId" value={{id}}>
+  <input type="hidden" name="frcard" value={{fcard}}>
+  <input type="hidden" name="brcard" value={{bcard}}>
+  <input type="submit" value="edit">
+</form>
+<form class="delete d-inline" action="/flipcard/delete" method="post">
+  <input type="hidden" name="cardId" value={{id}}>
+  <input type="hidden" name="hiddenId" value={{../hiddenId}}>
+  <input type="submit" name="" value="delete">
+</form>
+</li>
+{{/each}}
+</ul>
+</div>
