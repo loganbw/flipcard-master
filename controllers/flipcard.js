@@ -5,7 +5,7 @@ var User = require('../models/user')
 var Deck = require('../models/deck')
 const FlipcardController = {
   home: function(req, res) {
-    console.log("started quiz "+ req.session.quizStarted);
+    console.log("started quiz " + req.session.quizStarted);
     res.render('flipcards/home', {
       user: req.session.passport.user
     });
@@ -120,6 +120,24 @@ const FlipcardController = {
   },
   quiz: function(req, res) {
     var deck = req.body.hiddenId;
+    console.log("Deck " + deck);
+    console.log("Session Deck " + req.session.deck);
+    var startingnew = false;
+    if (req.session.deck == 'undefined' || req.session.deck == null) {
+      req.session.deck = deck;
+      startingnew = true;
+    } else {
+      if (deck === req.session.deck) {
+        console.log("continuing quiz");
+        startingnew = false;
+      } else {
+        console.log("starting a new quiz");
+        req.session.deck = deck
+        startingnew = true;
+      }
+
+
+    }
     console.log(deck + " --=-==-=-=-=-=-=");
     var card = models.Card.findAndCountAll({
         where: {
@@ -127,79 +145,92 @@ const FlipcardController = {
         }
       })
       .then(function(obj) {
+        var noquestions = false;
         console.log(obj.count);
-        var curr = []
-        if( req.body.startnew ){
-          req.session.currentquiz =null;
-          req.session.finishedquiz = false;
-          req.session.currentquizcard = null;
-        }
-        //if this is a new quiz
-        if (req.session.currentquiz == 'undefined' || req.session.currentquiz == null) {
-          var min = Math.ceil(1);
-          var max = Math.floor(obj.count + 1);
-          specificCard =  Math.floor(Math.random() * (max - min)) + min;
-          curr.push(specificCard);
-          req.session.finishedquiz = false;
-          req.session.currentquizcard = curr[curr.length-1];
-          req.session.rights = 0;
-          req.session.wrongs = 0;
-        } else {
-          curr = req.session.currentquiz;
-          if (curr.length === obj.count) {
-            req.session.finishedquiz = true;
-            //clear current session quiz stuff
-          } else {
-            var found = false;
-            var specificCard = null;
-            while (!found) {
-              var min = Math.ceil(1);
-              var max = Math.floor(obj.count + 1);
-              specificCard =  Math.floor(Math.random() * (max - min)) + min;
-              if (curr.indexOf(specificCard) >= 0) {
-                found = false;
-              } else {
-                found = true;
-              }
-            }
-            curr.push(specificCard);
+        if (obj.count > 0) {
+          var curr = []
+          if (req.body.startnew || startingnew) {
+            req.session.currentquiz = null;
+            req.session.finishedquiz = false;
+            req.session.currentquizcard = null;
+
           }
+          //if this is a new quiz
+          if (req.session.currentquiz == 'undefined' || req.session.currentquiz == null) {
+            var min = Math.ceil(1);
+            var max = Math.floor(obj.count + 1);
+            specificCard = Math.floor(Math.random() * (max - min)) + min;
+            curr.push(specificCard);
+            req.session.finishedquiz = false;
+            req.session.currentquizcard = curr[curr.length - 1];
+            req.session.rights = 0;
+            req.session.wrongs = 0;
+          } else {
+            curr = req.session.currentquiz;
+            if (curr.length === obj.count) {
+              req.session.finishedquiz = true;
+              //clear current session quiz stuff
+            } else {
+              var found = false;
+              var specificCard = null;
+              while (!found) {
+                var min = Math.ceil(1);
+                var max = Math.floor(obj.count + 1);
+                specificCard = Math.floor(Math.random() * (max - min)) + min;
+                if (curr.indexOf(specificCard) >= 0) {
+                  found = false;
+                } else {
+                  found = true;
+                }
+              }
+              curr.push(specificCard);
+            }
+          }
+          req.session.currentquiz = curr;
+          req.session.currentquizcard = curr[curr.length - 1];
+
+          console.log("dec " + curr);
+          console.log("sesssion " + req.session.currentquizcard);
+          console.log("current quiz finished = " + req.session.finishedquiz);
+          console.log("card values " + obj.rows[req.session.currentquizcard - 1].fcard);
+          req.session.storedcard = obj.rows[req.session.currentquizcard - 1];
+          res.render('flipcards/quiz', {
+            user: req.session.passport.user,
+            hiddenId: req.body.hiddenId,
+            cardId: req.body.cardId,
+            question: obj.rows[req.session.currentquizcard - 1].fcard,
+            finished: req.session.finishedquiz,
+            rights: req.session.rights,
+            wrongs: req.session.wrongs,
+            totals: req.session.rights + req.session.wrongs
+          })
+        } else {
+          res.render('flipcards/quiz', {
+            user: req.session.passport.user,
+            hiddenId: req.body.hiddenId,
+            cardId: req.body.cardId,
+            question: "no questions",
+            finished: false,
+            rights: 0,
+            wrongs: 0,
+            totals: 0
+          })
         }
-        req.session.currentquiz = curr;
-        req.session.currentquizcard = curr[curr.length-1];
-
-        console.log("dec " + curr);
-        console.log("sesssion " + req.session.currentquizcard);
-        console.log("current quiz finished = " + req.session.finishedquiz);
-        console.log("card values " + obj.rows[req.session.currentquizcard-1].fcard);
-        req.session.storedcard = obj.rows[req.session.currentquizcard-1];
         //console.log( obj.rows );
-        res.render('flipcards/quiz', {
-          user: req.session.passport.user,
-          hiddenId: req.body.hiddenId,
-          cardId: req.body.cardId,
-          question: obj.rows[req.session.currentquizcard-1].fcard,
-          finished: req.session.finishedquiz,
-          rights: req.session.rights,
-          wrongs: req.session.wrongs,
-          totals: req.session.rights + req.session.wrongs
-
-        })
-        // count is an integer
       })
 
   },
-  checkanswer: function(req,res)  {
+  checkanswer: function(req, res) {
 
-    if( req.body.answer === req.session.storedcard.bcard ){
-      console.log( "right");
+    if (req.body.answer === req.session.storedcard.bcard) {
+      console.log("right");
       req.session.rights++;
-    }else{
+    } else {
       req.session.wrongs++
-      console.log( "wrong");
+        console.log("wrong");
     }
 
-    FlipcardController.quiz(req,res);
+    FlipcardController.quiz(req, res);
   }
 
 
